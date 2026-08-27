@@ -1,0 +1,6 @@
+# Forzar fin de línea LF (Unix) para scripts bash y configs
+*.sh text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
