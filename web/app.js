@@ -235,10 +235,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // Deadlock Triple: P1 espera en C2 y ambos consumidores (P2 y P3) están trabados
+        // esperando un 2do mensaje en C1 vacío (ninguno puede llegar a enviar a C2).
+        const p2_stuck = (estados.P2 === 'GOT_1' || estados.P2 === 'BLOCKED_C1');
+        const p3_stuck = (estados.P3 === 'GOT_1' || estados.P3 === 'BLOCKED_C1');
+        
         const isTripleDeadlock = (
             estados.P1 === 'BLOCKED_C2' &&
-            estados.P2 === 'BLOCKED_C1' &&
-            estados.P3 === 'BLOCKED_C1'
+            buzonC1 === 0 &&
+            buzonC2 === 0 &&
+            p2_stuck &&
+            p3_stuck
         );
 
         const isCoordinatedSafe = (
@@ -299,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const simB1 = simularEscenarioB(zb1);
             if (simB1.isTripleDeadlock) {
                 fb_b1.className = 'sim-feedback danger';
-                fb_b1.textContent = '⚠️ ¡DEADLOCK TRIPLE CONFIRMADO! P₁ bloqueado esperando en C₂; P₂ y P₃ bloqueados esperando en C₁ vacío.';
+                fb_b1.textContent = '⚠️ ¡DEADLOCK TRIPLE DETECTADO! P₁ esperando en C₂; P₂ y P₃ consumieron 1 mensaje cada uno y quedaron bloqueados esperando el 2do en C₁ vacío.';
             } else {
                 fb_b1.className = 'sim-feedback';
                 fb_b1.textContent = 'La secuencia no llega al bloqueo de los 3 procesos. Asegúrese de que P₂ y P₃ consuman C₁ antes de que P₁ reciba de C₂.';
