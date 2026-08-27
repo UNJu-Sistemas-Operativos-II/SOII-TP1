@@ -171,14 +171,14 @@
                 <div class="action-bank-wrapper">
                     <div class="bank-title">📦 Banco de Acciones de Mensajería:</div>
                     <div class="action-bank" id="bank-b">
-                        <div class="dnd-item" draggable="true" data-id="P1_SEND_C1" data-process="P1">🔵 P1: Envía A y B a C1</div>
-                        <div class="dnd-item" draggable="true" data-id="P2_RECV_C1" data-process="P2">🟣 P2: Recibe A de C1</div>
-                        <div class="dnd-item" draggable="true" data-id="P2_SEND_C2" data-process="P2">🟣 P2: Envía I a C2</div>
-                        <div class="dnd-item" draggable="true" data-id="P1_RECV_C2" data-process="P1">🔵 P1: Recibe I de C2</div>
-                        <div class="dnd-item" draggable="true" data-id="P3_RECV_C1" data-process="P3">🟡 P3: Recibe B de C1</div>
-                        <div class="dnd-item" draggable="true" data-id="P3_SEND_C2" data-process="P3">🟡 P3: Envía L a C2</div>
-                        <div class="dnd-item" draggable="true" data-id="P1_RECV_EMPTY" data-process="P1">⚠️ P1: Espera C2 vacío (sin enviar nada)</div>
-                        <div class="dnd-item" draggable="true" data-id="P2_P3_CONSUME_ALL" data-process="P2">⚠️ P2 y P3 consumen C1 y esperan indefinidamente</div>
+                        <div class="dnd-item" draggable="true" data-id="P1_SEND_AB">🔵 P1: Envía(C₁, A) y Envía(C₁, B)</div>
+                        <div class="dnd-item" draggable="true" data-id="P1_RECV_C2">🔵 P1: Recibe(C₂, C)</div>
+                        <div class="dnd-item" draggable="true" data-id="P2_RECV_1">🟣 P2: Recibe(C₁, G) [Consume 1er msg]</div>
+                        <div class="dnd-item" draggable="true" data-id="P2_RECV_2">🟣 P2: Recibe(C₁, H) [Requiere 2do msg]</div>
+                        <div class="dnd-item" draggable="true" data-id="P2_SEND_C2">🟣 P2: Envía(C₂, I)</div>
+                        <div class="dnd-item" draggable="true" data-id="P3_RECV_1">🟡 P3: Recibe(C₁, J) [Consume 1er msg]</div>
+                        <div class="dnd-item" draggable="true" data-id="P3_RECV_2">🟡 P3: Recibe(C₁, K) [Requiere 2do msg]</div>
+                        <div class="dnd-item" draggable="true" data-id="P3_SEND_C2">🟡 P3: Envía(C₂, L)</div>
                     </div>
                 </div>
 
@@ -189,8 +189,8 @@
                         <h4>B.1. Secuencia que produce el Bloqueo de los 3 Procesos (Deadlock Triple)</h4>
                         <button class="btn-reset" onclick="resetZone('zone-deadlock-b', 'bank-b')">🔄 Limpiar</button>
                     </div>
-                    <div class="dropzone" id="zone-deadlock-b" data-target="deadlock_b" data-max="2">
-                        <div class="drop-placeholder">Suelte aquí la combinación que deja a los 3 procesos esperando en buzones vacíos...</div>
+                    <div class="dropzone" id="zone-deadlock-b" data-target="deadlock_b" data-max="5">
+                        <div class="drop-placeholder">Suelte los pasos entrelazados que provocan el agotamiento de C₁ y el bloqueo simultáneo de P₁, P₂ y P₃...</div>
                     </div>
                     <div class="sim-feedback" id="feedback-dl-b"></div>
                 </div>
@@ -202,8 +202,8 @@
                         <h4>B.2. Protocolo Coordinado Libre de Bloqueos (Flujo Completo)</h4>
                         <button class="btn-reset" onclick="resetZone('zone-safe-b', 'bank-b')">🔄 Limpiar</button>
                     </div>
-                    <div class="dropzone" id="zone-safe-b" data-target="safe_b" data-max="4">
-                        <div class="drop-placeholder">Suelte aquí la secuencia donde P1 produce y P2/P3 responden por C2 sin bloqueos...</div>
+                    <div class="dropzone" id="zone-safe-b" data-target="safe_b" data-max="5">
+                        <div class="drop-placeholder">Suelte la secuencia donde P₂ recibe ambos mensajes de C₁, responde por C₂ y desbloquea a P₁...</div>
                     </div>
                     <div class="sim-feedback" id="feedback-safe-b"></div>
                 </div>
