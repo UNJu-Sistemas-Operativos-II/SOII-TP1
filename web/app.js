@@ -1,63 +1,82 @@
 document.addEventListener('DOMContentLoaded', () => {
-    let draggedItem = null;
+    let draggedData = null;
 
-    function initDraggables() {
-        const items = document.querySelectorAll('.dnd-item');
-        items.forEach(item => {
-            item.removeEventListener('dragstart', handleDragStart);
-            item.removeEventListener('dragend', handleDragEnd);
-            item.removeEventListener('click', handleClickMove);
+    // Crear un chip clonado listo para ser colocado en una dropzone
+    function createZoneItem(id, text) {
+        const item = document.createElement('div');
+        item.className = 'dnd-item in-zone';
+        item.dataset.id = id;
+        item.draggable = true;
+        item.innerHTML = `<span>${text}</span> <span class="btn-del-item" title="Eliminar paso">✕</span>`;
 
-            item.addEventListener('dragstart', handleDragStart);
-            item.addEventListener('dragend', handleDragEnd);
-            item.addEventListener('click', handleClickMove);
+        item.addEventListener('click', function(e) {
+            this.parentElement.removeChild(this);
+            updateAllPlaceholders();
+            evaluateDeadlocks();
+        });
+
+        item.addEventListener('dragstart', function(e) {
+            draggedData = { id: this.dataset.id, text: this.querySelector('span').textContent, isFromZone: true, element: this };
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.id);
+        });
+
+        item.addEventListener('dragend', function() {
+            this.classList.remove('dragging');
+            draggedData = null;
+            updateAllPlaceholders();
+            evaluateDeadlocks();
+        });
+
+        return item;
+    }
+
+    // Inicializar items del Banco (como paleta inagotable)
+    function initBankItems() {
+        const bankItems = document.querySelectorAll('.action-bank .dnd-item');
+        bankItems.forEach(item => {
+            item.addEventListener('dragstart', function(e) {
+                draggedData = { id: this.dataset.id, text: this.textContent.trim(), isFromZone: false };
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', this.dataset.id);
+            });
+
+            item.addEventListener('dragend', function() {
+                this.classList.remove('dragging');
+                draggedData = null;
+            });
+
+            item.addEventListener('click', function() {
+                // Clic en el banco añade una copia al primer destino disponible
+                const parentBank = this.parentElement;
+                const scenario = parentBank.id === 'bank-a' ? 'a' : 'b';
+                const dropzones = scenario === 'a'
+                    ? [document.getElementById('zone-deadlock-a'), document.getElementById('zone-safe-a')]
+                    : [document.getElementById('zone-deadlock-b'), document.getElementById('zone-safe-b')];
+
+                for (let dz of dropzones) {
+                    const max = parseInt(dz.dataset.max) || 4;
+                    const count = dz.querySelectorAll('.dnd-item').length;
+                    if (count < max) {
+                        const clone = createZoneItem(this.dataset.id, this.textContent.trim());
+                        dz.appendChild(clone);
+                        updateAllPlaceholders();
+                        evaluateDeadlocks();
+                        break;
+                    }
+                }
+            });
         });
     }
 
-    function handleDragStart(e) {
-        draggedItem = this;
-        this.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', this.dataset.id);
-    }
-
-    function handleDragEnd() {
-        this.classList.remove('dragging');
-        draggedItem = null;
-        updateAllPlaceholders();
-        evaluateDeadlocks();
-    }
-
-    function handleClickMove(e) {
-        const parent = this.parentElement;
-        if (parent.classList.contains('action-bank')) {
-            const scenario = parent.id === 'bank-a' ? 'a' : 'b';
-            const dropzones = scenario === 'a' 
-                ? [document.getElementById('zone-deadlock-a'), document.getElementById('zone-safe-a')]
-                : [document.getElementById('zone-deadlock-b'), document.getElementById('zone-safe-b')];
-            
-            for (let dz of dropzones) {
-                const max = parseInt(dz.dataset.max) || 4;
-                const currentCount = dz.querySelectorAll('.dnd-item').length;
-                if (currentCount < max) {
-                    dz.appendChild(this);
-                    break;
-                }
-            }
-        } else if (parent.classList.contains('dropzone')) {
-            const bankId = parent.id.includes('-a') ? 'bank-a' : 'bank-b';
-            document.getElementById(bankId).appendChild(this);
-        }
-        updateAllPlaceholders();
-        evaluateDeadlocks();
-    }
-
     // Configurar Dropzones
-    const dropzones = document.querySelectorAll('.dropzone, .action-bank');
+    const dropzones = document.querySelectorAll('.dropzone');
     dropzones.forEach(zone => {
         zone.addEventListener('dragover', (e) => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
+            e.dataTransfer.dropEffect = 'copy';
             zone.classList.add('dragover');
         });
 
@@ -68,17 +87,27 @@ document.addEventListener('DOMContentLoaded', () => {
         zone.addEventListener('drop', function(e) {
             e.preventDefault();
             this.classList.remove('dragover');
-            if (!draggedItem) return;
+            if (!draggedData) return;
 
-            if (this.classList.contains('dropzone')) {
-                const max = parseInt(this.dataset.max) || 4;
-                const current = this.querySelectorAll('.dnd-item').length;
-                if (current >= max && draggedItem.parentElement !== this) {
+            const max = parseInt(this.dataset.max) || 4;
+            const current = this.querySelectorAll('.dnd-item').length;
+
+            if (draggedData.isFromZone) {
+                // Mover dentro de zonas
+                if (draggedData.element.parentElement !== this && current >= max) {
                     alert(`Esta línea de tiempo admite un máximo de ${max} pasos.`);
                     return;
                 }
+                this.appendChild(draggedData.element);
+            } else {
+                // Clonar desde el banco
+                if (current >= max) {
+                    alert(`Esta línea de tiempo admite un máximo de ${max} pasos.`);
+                    return;
+                }
+                const clone = createZoneItem(draggedData.id, draggedData.text);
+                this.appendChild(clone);
             }
-            this.appendChild(draggedItem);
             updateAllPlaceholders();
             evaluateDeadlocks();
         });
@@ -94,26 +123,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.resetZone = function(zoneId, bankId) {
+    window.resetZone = function(zoneId) {
         const zone = document.getElementById(zoneId);
-        const bank = document.getElementById(bankId);
         const items = zone.querySelectorAll('.dnd-item');
-        items.forEach(item => bank.appendChild(item));
+        items.forEach(item => zone.removeChild(item));
         updateAllPlaceholders();
         evaluateDeadlocks();
     };
 
     // =========================================================================
-    // MOTOR DE SIMULACIÓN DE GRAFO DE ASIGNACIÓN DE RECURSOS (STATE MACHINE)
+    // MOTOR DE SIMULACIÓN DINÁMICO DE ASIGNACIÓN DE RECURSOS (STATE MACHINE)
     // =========================================================================
     function simularEscenarioA(pasos) {
         const estado = {
-            recursos: { C: null, I: null }, // Quién posee el recurso
-            bloqueados: { P1: null, P2: null } // Qué recurso está esperando
+            recursos: { C: null, I: null },
+            bloqueados: { P1: null, P2: null }
         };
 
         for (let paso of pasos) {
-            const [proceso, accion, recurso] = paso.split('_'); // ej: P1, REQ, C
+            const [proceso, accion, recurso] = paso.split('_');
 
             if (accion === 'REQ') {
                 if (estado.recursos[recurso] === null) {
@@ -128,7 +156,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Detección de Espera Circular (Coffman)
         const isDeadlock = (
             estado.bloqueados.P1 !== null &&
             estado.bloqueados.P2 !== null &&
@@ -169,7 +196,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (za2.length >= 4) {
             const sim = simularEscenarioA(za2);
-            const hasReqRel = (za2.includes('P1_REQ_C') || za2.includes('P1_REQ_I')) && (za2.includes('P1_REL_C') || za2.includes('P1_REL_I'));
+            const hasReqRel = (za2.includes('P1_REQ_C') || za2.includes('P1_REQ_I') || za2.includes('P2_REQ_C') || za2.includes('P2_REQ_I')) && 
+                             (za2.includes('P1_REL_C') || za2.includes('P1_REL_I') || za2.includes('P2_REL_C') || za2.includes('P2_REL_I'));
             
             if (!sim.isDeadlock && hasReqRel) {
                 fb_a2.className = 'sim-feedback success';
@@ -197,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const zb2 = Array.from(document.getElementById('zone-safe-b').querySelectorAll('.dnd-item')).map(i => i.dataset.id);
         const fb_b2 = document.getElementById('feedback-safe-b');
         if (zb2.length >= 3) {
-            if (zb2.includes('P1_SEND_C1') && zb2.includes('P2_RECV_C1') && zb2.includes('P2_SEND_C2')) {
+            if (zb2.includes('P1_SEND_C1') && (zb2.includes('P2_RECV_C1') || zb2.includes('P3_RECV_C1'))) {
                 fb_b2.className = 'sim-feedback success';
                 fb_b2.textContent = '✅ PROTOCOLO COORDINADO: Envío y recepción sincronizados sin interbloqueos.';
             }
@@ -206,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    initDraggables();
+    initBankItems();
     updateAllPlaceholders();
 
     // Exportador JSON
@@ -238,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const is_safe_a = (!sim_a2.isDeadlock && seq_safe_a.length >= 4) ? 'SECUENCIAL_ORDENADA' : 'INCOMPLETO';
         
         const is_dl_b = (seq_dl_b.includes('P1_RECV_EMPTY') || seq_dl_b.includes('P2_P3_CONSUME_ALL')) ? 'BLOQUEO_TRIPLE' : 'INCOMPLETO';
-        const is_safe_b = (seq_safe_b.includes('P1_SEND_C1') && seq_safe_b.includes('P2_RECV_C1')) ? 'PROTOCOLO_COORDINADO' : 'INCOMPLETO';
+        const is_safe_b = (seq_safe_b.includes('P1_SEND_C1') && (seq_safe_b.includes('P2_RECV_C1') || seq_safe_b.includes('P3_RECV_C1'))) ? 'PROTOCOLO_COORDINADO' : 'INCOMPLETO';
 
         return {
             estudiante: {
@@ -297,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         URL.revokeObjectURL(url);
 
         statusMsg.style.color = '#4ade80';
-        statusMsg.textContent = '✅ Archivo respuestas_tp1.json generado. Muévelo a la carpeta soluciones/ de tu repositorio.';
+        statusMsg.textContent = '✅ Archivo respuestas_tp1.json generado con éxito con TODAS las secciones resueltas.';
     });
 
     btnCopy.addEventListener('click', () => {

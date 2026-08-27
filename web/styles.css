@@ -245,6 +245,9 @@ code {
     user-select: none;
     transition: all 0.2s;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .dnd-item:hover {
@@ -260,6 +263,30 @@ code {
 .dnd-item.dragging {
     opacity: 0.4;
     transform: scale(0.95);
+}
+
+.dnd-item.in-zone {
+    cursor: pointer;
+    background: linear-gradient(135deg, rgba(30, 58, 138, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.dnd-item.in-zone:hover {
+    border-color: #ef4444;
+}
+
+.btn-del-item {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 800;
+    padding: 0 0.25rem;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.btn-del-item:hover {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.2);
 }
 
 .dropzone-container {
