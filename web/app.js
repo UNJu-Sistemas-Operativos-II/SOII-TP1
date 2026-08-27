@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     let draggedItem = null;
 
-    // Inicializar Drag and Drop en todos los items
     function initDraggables() {
         const items = document.querySelectorAll('.dnd-item');
         items.forEach(item => {
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleClickMove(e) {
-        // Si está en un banco, mover a la primera dropzone con espacio
         const parent = this.parentElement;
         if (parent.classList.contains('action-bank')) {
             const scenario = parent.id === 'bank-a' ? 'a' : 'b';
@@ -47,7 +45,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } else if (parent.classList.contains('dropzone')) {
-            // Si está en dropzone, devolver al banco
             const bankId = parent.id.includes('-a') ? 'bank-a' : 'bank-b';
             document.getElementById(bankId).appendChild(this);
         }
@@ -106,35 +103,106 @@ document.addEventListener('DOMContentLoaded', () => {
         evaluateDeadlocks();
     };
 
+    // =========================================================================
+    // MOTOR DE SIMULACIÓN DE GRAFO DE ASIGNACIÓN DE RECURSOS (STATE MACHINE)
+    // =========================================================================
+    function simularEscenarioA(pasos) {
+        const estado = {
+            recursos: { C: null, I: null }, // Quién posee el recurso
+            bloqueados: { P1: null, P2: null } // Qué recurso está esperando
+        };
+
+        for (let paso of pasos) {
+            const [proceso, accion, recurso] = paso.split('_'); // ej: P1, REQ, C
+
+            if (accion === 'REQ') {
+                if (estado.recursos[recurso] === null) {
+                    estado.recursos[recurso] = proceso;
+                } else if (estado.recursos[recurso] !== proceso) {
+                    estado.bloqueados[proceso] = recurso;
+                }
+            } else if (accion === 'REL') {
+                if (estado.recursos[recurso] === proceso) {
+                    estado.recursos[recurso] = null;
+                }
+            }
+        }
+
+        // Detección de Espera Circular (Coffman)
+        const isDeadlock = (
+            estado.bloqueados.P1 !== null &&
+            estado.bloqueados.P2 !== null &&
+            estado.recursos[estado.bloqueados.P1] === 'P2' &&
+            estado.recursos[estado.bloqueados.P2] === 'P1'
+        );
+
+        return {
+            isDeadlock,
+            bloqueados: estado.bloqueados,
+            recursos: estado.recursos
+        };
+    }
+
     function evaluateDeadlocks() {
-        // Evaluar A.1
+        // --- Evaluar A.1 (Deadlock) ---
         const za1 = Array.from(document.getElementById('zone-deadlock-a').querySelectorAll('.dnd-item')).map(i => i.dataset.id);
         const fb_a1 = document.getElementById('feedback-dl-a');
-        if (za1.length === 4) {
-            if (za1[0] === 'P1_REQ_C' && za1[1] === 'P2_REQ_I' && za1[2] === 'P1_REQ_I' && za1[3] === 'P2_REQ_C') {
+        
+        if (za1.length >= 4) {
+            const sim = simularEscenarioA(za1);
+            if (sim.isDeadlock) {
                 fb_a1.className = 'sim-feedback danger';
-                fb_a1.textContent = '⚠️ ¡DEADLOCK DETECTADO! P1 retiene C y espera I; P2 retiene I y espera C (Espera Circular).';
+                const recP1 = sim.recursos.C === 'P1' ? 'Cinta (C)' : 'Impresora (I)';
+                const recP2 = sim.recursos.C === 'P2' ? 'Cinta (C)' : 'Impresora (I)';
+                fb_a1.textContent = `⚠️ ¡DEADLOCK DETECTADO! P1 retiene ${recP1} y espera por P2; P2 retiene ${recP2} y espera por P1 (Espera Circular de Coffman).`;
             } else {
                 fb_a1.className = 'sim-feedback';
-                fb_a1.textContent = 'Secuencia incompleta o no genera interbloqueo cruzado.';
+                fb_a1.textContent = 'La secuencia no produce interbloqueo mutuo. Ambos procesos deben retener 1 recurso y solicitar el del otro.';
             }
         } else {
             fb_a1.textContent = '';
         }
 
-        // Evaluar A.2
+        // --- Evaluar A.2 (Segura) ---
         const za2 = Array.from(document.getElementById('zone-safe-a').querySelectorAll('.dnd-item')).map(i => i.dataset.id);
         const fb_a2 = document.getElementById('feedback-safe-a');
-        if (za2.length === 4) {
-            if (za2[0] === 'P1_REQ_C' && za2[1] === 'P1_REQ_I' && za2[2] === 'P1_REL_I' && za2[3] === 'P1_REL_C') {
+        
+        if (za2.length >= 4) {
+            const sim = simularEscenarioA(za2);
+            const hasReqRel = (za2.includes('P1_REQ_C') || za2.includes('P1_REQ_I')) && (za2.includes('P1_REL_C') || za2.includes('P1_REL_I'));
+            
+            if (!sim.isDeadlock && hasReqRel) {
                 fb_a2.className = 'sim-feedback success';
-                fb_a2.textContent = '✅ SECUENCIA SEGURA: P1 adquiere, utiliza y libera ambos recursos sin bloquear a P2.';
+                fb_a2.textContent = '✅ SECUENCIA SEGURA: Los recursos se adquieren y liberan ordenadamente sin provocar bloqueos mutuos.';
             } else {
                 fb_a2.className = 'sim-feedback';
-                fb_a2.textContent = 'Revise el orden de solicitudes y liberaciones.';
+                fb_a2.textContent = 'Revise que los recursos solicitados sean liberados adecuadamente.';
             }
         } else {
             fb_a2.textContent = '';
+        }
+
+        // --- Evaluar B.1 y B.2 ---
+        const zb1 = Array.from(document.getElementById('zone-deadlock-b').querySelectorAll('.dnd-item')).map(i => i.dataset.id);
+        const fb_b1 = document.getElementById('feedback-dl-b');
+        if (zb1.length >= 1) {
+            if (zb1.includes('P1_RECV_EMPTY') || zb1.includes('P2_P3_CONSUME_ALL')) {
+                fb_b1.className = 'sim-feedback danger';
+                fb_b1.textContent = '⚠️ ¡BLOQUEO TRIPLE DETECTADO! Procesos bloqueados en espera de mensajes en buzones vacíos.';
+            }
+        } else {
+            fb_b1.textContent = '';
+        }
+
+        const zb2 = Array.from(document.getElementById('zone-safe-b').querySelectorAll('.dnd-item')).map(i => i.dataset.id);
+        const fb_b2 = document.getElementById('feedback-safe-b');
+        if (zb2.length >= 3) {
+            if (zb2.includes('P1_SEND_C1') && zb2.includes('P2_RECV_C1') && zb2.includes('P2_SEND_C2')) {
+                fb_b2.className = 'sim-feedback success';
+                fb_b2.textContent = '✅ PROTOCOLO COORDINADO: Envío y recepción sincronizados sin interbloqueos.';
+            }
+        } else {
+            fb_b2.textContent = '';
         }
     }
 
@@ -163,11 +231,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const seq_dl_b = getItems('zone-deadlock-b');
         const seq_safe_b = getItems('zone-safe-b');
 
-        // Mapeo canónico
-        const is_deadlock_a = (seq_dl_a.length === 4 && seq_dl_a[0] === 'P1_REQ_C' && seq_dl_a[1] === 'P2_REQ_I' && seq_dl_a[2] === 'P1_REQ_I' && seq_dl_a[3] === 'P2_REQ_C') ? 'DEADLOCK_CRUZADO' : 'INCOMPLETO';
-        const is_safe_a = (seq_safe_a.length === 4 && seq_safe_a[0] === 'P1_REQ_C' && seq_safe_a[1] === 'P1_REQ_I' && seq_safe_a[2] === 'P1_REL_I' && seq_safe_a[3] === 'P1_REL_C') ? 'SECUENCIAL_ORDENADA' : 'INCOMPLETO';
+        const sim_a1 = simularEscenarioA(seq_dl_a);
+        const is_deadlock_a = sim_a1.isDeadlock ? 'DEADLOCK_CRUZADO' : 'INCOMPLETO';
+        
+        const sim_a2 = simularEscenarioA(seq_safe_a);
+        const is_safe_a = (!sim_a2.isDeadlock && seq_safe_a.length >= 4) ? 'SECUENCIAL_ORDENADA' : 'INCOMPLETO';
+        
         const is_dl_b = (seq_dl_b.includes('P1_RECV_EMPTY') || seq_dl_b.includes('P2_P3_CONSUME_ALL')) ? 'BLOQUEO_TRIPLE' : 'INCOMPLETO';
-        const is_safe_b = (seq_safe_b.includes('P1_SEND_C1') && seq_safe_b.includes('P2_RECV_C1') && seq_safe_b.includes('P2_SEND_C2')) ? 'PROTOCOLO_COORDINADO' : 'INCOMPLETO';
+        const is_safe_b = (seq_safe_b.includes('P1_SEND_C1') && seq_safe_b.includes('P2_RECV_C1')) ? 'PROTOCOLO_COORDINADO' : 'INCOMPLETO';
 
         return {
             estudiante: {
