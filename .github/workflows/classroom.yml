@@ -1,0 +1,31 @@
+name: GitHub Classroom Autograding - TP 1
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  evaluacion-autograding:
+    name: Autograding Tests - TP1
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Permisos de Ejecución
+        run: |
+          chmod +x test.sh ejercicios_procesos.sh
+
+      - name: Ejecutar Suite de Evaluación de TP1
+        run: |
+          ./test.sh

@@ -1,0 +1,17 @@
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test outputs
+soluciones/*.txt
+soluciones/*.log
+soluciones/*.json
+!soluciones/.gitkeep
+!soluciones/respuestas_tp1.json.template

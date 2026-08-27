@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SO II - TP 1: Módulo Interactivo de Teoría e Interbloqueos</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="hero-header">
+            <div class="badge">UNJu — Facultad de Ingeniería</div>
+            <h1>Sistemas Operativos II — Trabajo Práctico N° 1</h1>
+            <p class="subtitle">Módulo Interactivo: Fundamentos del Kernel, Procesos e Interbloqueos (Deadlocks)</p>
+        </header>
+
+        <!-- Student Info Card -->
+        <div class="glass-card student-card">
+            <h2>👤 Datos del Estudiante</h2>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label for="student-name">Nombre y Apellido:</label>
+                    <input type="text" id="student-name" placeholder="Ej: Juan Pérez">
+                </div>
+                <div class="input-group">
+                    <label for="student-lu">Legajo Universitario (L.U.):</label>
+                    <input type="text" id="student-lu" placeholder="Ej: 451234">
+                </div>
+                <div class="input-group">
+                    <label for="student-github">Usuario de GitHub:</label>
+                    <input type="text" id="student-github" placeholder="Ej: juanperez">
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Conceptos del Kernel y Shell -->
+        <section class="glass-card section-card">
+            <div class="section-header">
+                <span class="step-num">01</span>
+                <h2>Estructura del Kernel, Shells y Llamadas al Sistema</h2>
+            </div>
+
+            <!-- Q1 -->
+            <div class="question-block">
+                <p class="question-title">1. ¿Cuál es el directorio estándar donde se almacenan los módulos dinámicos compilados del Kernel en Linux?</p>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="q1" value="A"> <code>/etc/kernel/modules/</code></label>
+                    <label class="option-label"><input type="radio" name="q1" value="B"> <code>/lib/modules/$(uname -r)/</code></label>
+                    <label class="option-label"><input type="radio" name="q1" value="C"> <code>/var/log/kernel/</code></label>
+                    <label class="option-label"><input type="radio" name="q1" value="D"> <code>/usr/bin/kernel/</code></label>
+                </div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="question-block">
+                <p class="question-title">2. ¿Qué ocurre durante una llamada al sistema (System Call) cuando el proceso cambia de Modo Usuario a Modo Kernel?</p>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="q2" value="A"> El proceso se reinicia y se crea un nuevo PID.</label>
+                    <label class="option-label"><input type="radio" name="q2" value="B"> Se eleva el nivel de privilegio de la CPU (de Ring 3 a Ring 0) mediante una interrupción por software (TRAP).</label>
+                    <label class="option-label"><input type="radio" name="q2" value="C"> El hardware apaga la memoria swap temporalmente.</label>
+                    <label class="option-label"><input type="radio" name="q2" value="D"> El proceso accede a los puertos físicos de E/S sin intermediación del SO.</label>
+                </div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="question-block">
+                <p class="question-title">3. ¿Cuáles de los siguientes son intérpretes de comandos (Shells) estándar en sistemas UNIX/Linux?</p>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="q3" value="A"> BASH, ZSH, SH, KSH, FISH</label>
+                    <label class="option-label"><input type="radio" name="q3" value="B"> CASH, DOS, CMD, NOTEPAD</label>
+                    <label class="option-label"><input type="radio" name="q3" value="C"> KERNEL, SYSTEMD, GRUB</label>
+                    <label class="option-label"><input type="radio" name="q3" value="D"> GETTY, INIT, SYSTEMCTL</label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Señales y Procesos -->
+        <section class="glass-card section-card">
+            <div class="section-header">
+                <span class="step-num">02</span>
+                <h2>Señales, Estados de Proceso y el Pseudo-Filesystem /proc</h2>
+            </div>
+
+            <!-- Q4 -->
+            <div class="question-block">
+                <p class="question-title">4. Al presionar <code>Ctrl + Z</code> en una terminal Linux mientras corre un comando en primer plano, ¿qué señal se envía al proceso?</p>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="q4" value="A"> <code>SIGKILL (9)</code>: Termina el proceso de forma inmediata e inapelable.</label>
+                    <label class="option-label"><input type="radio" name="q4" value="B"> <code>SIGINT (2)</code>: Interrumpe el proceso.</label>
+                    <label class="option-label"><input type="radio" name="q4" value="C"> <code>SIGTSTP (20)</code>: Detiene/pausa el proceso y lo envía a segundo plano (Stopped).</label>
+                    <label class="option-label"><input type="radio" name="q4" value="D"> <code>SIGHUP (1)</code>: Cierra la terminal de control.</label>
+                </div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="question-block">
+                <p class="question-title">5. ¿Qué representa el directorio virtual <code>/proc/[PID]/</code> en Linux?</p>
+                <div class="options-grid">
+                    <label class="option-label"><input type="radio" name="q5" value="A"> Archivos guardados en disco duro que respaldan la sesión del usuario.</label>
+                    <label class="option-label"><input type="radio" name="q5" value="B"> Una estructura en memoria generada por el Kernel con información del estado del proceso (status, fd, maps, cmdline).</label>
+                    <label class="option-label"><input type="radio" name="q5" value="C"> Código fuente en C del programa compilado.</label>
+                    <label class="option-label"><input type="radio" name="q5" value="D"> La tabla de particiones del disco rígido.</label>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Interbloqueos (Deadlocks) -->
+        <section class="glass-card section-card">
+            <div class="section-header">
+                <span class="step-num">03</span>
+                <h2>Análisis y Resolución de Interbloqueos (Deadlocks)</h2>
+            </div>
+
+            <!-- Scenario 1 -->
+            <div class="deadlock-scenario">
+                <h3>Escenario A: Dos procesos (P1, P2) y dos recursos exclusivos: Cinta (C) e Impresora (I)</h3>
+                <p class="scenario-desc">P1 y P2 necesitan ambos recursos durante su ejecución.</p>
+                
+                <div class="sub-q">
+                    <p><strong>A.1. Secuencia que PRODUCE Interbloqueo (Deadlock):</strong></p>
+                    <select id="dl_a1" class="form-select">
+                        <option value="">-- Seleccione la secuencia correcta --</option>
+                        <option value="DEADLOCK_CRUZADO">P1 solicita C -> P2 solicita I -> P1 solicita I (Bloqueo P1) -> P2 solicita C (Bloqueo P2 / Deadlock)</option>
+                        <option value="SECUENCIAL_P1_P2">P1 solicita C -> P1 solicita I -> P1 libera I -> P1 libera C -> P2 solicita I -> P2 solicita C</option>
+                        <option value="SOLO_LECTURA">P1 lee C en modo compartido -> P2 lee I en modo compartido</option>
+                    </select>
+                </div>
+
+                <div class="sub-q">
+                    <p><strong>A.2. Secuencia que EVITA el Interbloqueo (Ejecución Segura):</strong></p>
+                    <select id="dl_a2" class="form-select">
+                        <option value="">-- Seleccione la secuencia correcta --</option>
+                        <option value="SECUENCIAL_ORDENADA">P1 solicita C -> P1 solicita I -> P1 finaliza y libera C e I -> P2 solicita I -> P2 solicita C</option>
+                        <option value="SOLICITUD_SIMULTANEA_CRUZADA">P1 solicita C -> P2 solicita I -> P1 solicita I -> P2 solicita C</option>
+                        <option value="ABANDONO">P1 y P2 esperan indefinidamente sin solicitar ningún recurso</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Scenario 2 -->
+            <div class="deadlock-scenario">
+                <h3>Escenario B: Tres procesos (P1, P2, P3) y dos buzones de mensajes (C1, C2)</h3>
+                <p class="scenario-desc">P1 envía a C1 y recibe de C2. P2 y P3 reciben de C1 y envían a C2.</p>
+                
+                <div class="sub-q">
+                    <p><strong>B.1. Secuencia que produce el Bloqueo de los 3 procesos:</strong></p>
+                    <select id="dl_b1" class="form-select">
+                        <option value="">-- Seleccione la secuencia correcta --</option>
+                        <option value="BLOQUEO_TRIPLE">P2 y P3 consumen todos los mensajes de C1 -> P1 intenta recibir de C2 (vacío, se bloquea) -> P2 y P3 intentan recibir de C1 (vacío, se bloquean)</option>
+                        <option value="FLUJO_BALANCEADO">P1 envía A y B a C1 -> P2 recibe A y envía I a C2 -> P1 recibe I de C2</option>
+                    </select>
+                </div>
+
+                <div class="sub-q">
+                    <p><strong>B.2. Secuencia Libre de Interbloqueos:</strong></p>
+                    <select id="dl_b2" class="form-select">
+                        <option value="">-- Seleccione la secuencia correcta --</option>
+                        <option value="PROTOCOLO_COORDINADO">P1 envía A y B a C1 -> P2 recibe A y envía I a C2 -> P1 recibe I de C2 -> P1 envía D y E a C1 -> P3 recibe B y envía L a C2</option>
+                        <option value="ESPERA_INDEFINIDA">P1 espera recibir de C2 antes de haber enviado ningún mensaje a C1</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Export Action Card -->
+        <div class="glass-card action-card">
+            <div class="action-info">
+                <h3>🚀 Generar y Guardar Solución</h3>
+                <p>Una vez completadas todas las secciones, descarga tu archivo de respuestas y guárdalo en la carpeta <code>soluciones/respuestas_tp1.json</code> de tu repositorio.</p>
+            </div>
+            <div class="button-group">
+                <button id="btn-export" class="btn-primary">📥 Descargar respuestas_tp1.json</button>
+                <button id="btn-copy" class="btn-secondary">📋 Copiar al Portapapeles</button>
+            </div>
+            <div id="status-msg" class="status-msg"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

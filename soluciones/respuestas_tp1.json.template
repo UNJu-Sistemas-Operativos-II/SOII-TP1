@@ -1,0 +1,26 @@
+{
+    "estudiante": {
+        "nombre_completo": "",
+        "legajo_lu": "",
+        "usuario_github": ""
+    },
+    "seccion1_conceptos": {
+        "q1_directorio_modulos": "",
+        "q2_cambio_modo_syscall": "",
+        "q3_shells_estandar": ""
+    },
+    "seccion2_senales_procesos": {
+        "q4_senal_ctrl_z": "",
+        "q5_pseudo_fs_proc": ""
+    },
+    "seccion3_interbloqueos": {
+        "escenario_a_recursos": {
+            "secuencia_deadlock": "",
+            "secuencia_segura": ""
+        },
+        "escenario_b_mensajes": {
+            "secuencia_bloqueo_triple": "",
+            "secuencia_segura": ""
+        }
+    }
+}
