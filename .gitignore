@@ -12,6 +12,5 @@ desktop.ini
 # Test outputs
 soluciones/*.txt
 soluciones/*.log
-soluciones/*.json
 !soluciones/.gitkeep
 !soluciones/respuestas_tp1.json.template
